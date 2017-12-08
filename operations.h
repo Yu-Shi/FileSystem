@@ -7,9 +7,7 @@
 
 #endif //FILESYSTEM_OPERATIONS_H
 
-#include <string>
-#include <cstring>
-using namespace std;
+#include "structs.h"
 
 //pwd
 void getLocation()

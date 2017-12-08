@@ -7,6 +7,12 @@
 
 #endif //FILESYSTEM_STRUCTS_H
 
+#include <string>
+#include <cstring>
+using namespace std;
+
+const string FILEPATH = "hello";
+
 struct super_block
 {
     bool inode_bitmap[4096];
