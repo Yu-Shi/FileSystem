@@ -1,9 +1,13 @@
 #include <iostream>
 #include "operations.h"
 
-int main()
-{
+int main(){
     initialize();
-    cout << "Hello, World!" << std::endl;
+    while(1){
+        string cmd;
+        cout << "<<";
+        cin >> cmd;
+        operation(cmd);
+    }
     return 0;
 }
