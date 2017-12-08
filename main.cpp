@@ -1,8 +1,9 @@
 #include <iostream>
-#include "structs.h"
+#include "operations.h"
 
 int main()
 {
-    std::cout << "Hello, World!" << std::endl;
+    initialize();
+    cout << "Hello, World!" << std::endl;
     return 0;
 }

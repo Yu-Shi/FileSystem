@@ -9,15 +9,16 @@
 
 #include <string>
 #include <cstring>
+#include <fstream>
 using namespace std;
 
 const string FILEPATH = "hello";
 
-struct super_block
+struct Super_Block
 {
     bool inode_bitmap[4096];
     bool block_bitmap[4096];
-};
+}super_block;
 
 struct inode
 {
@@ -26,9 +27,9 @@ struct inode
     int i_file_size;
     int i_blocks[1];
     char i_place_holder[16];
-};
+}inodes[4096];
 
-struct file_block
+struct File_Block
 {
     char data[4096];
 };
@@ -43,3 +44,5 @@ struct dir_block
 {
     dir_entry dirs[16];
 };
+
+char emptyspaces[4096 * 4096];
