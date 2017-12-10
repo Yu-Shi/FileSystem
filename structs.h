@@ -46,3 +46,5 @@ struct dir_block
 };
 
 char emptyspaces[4096 * 4096];
+string location;
+string seperated_names[100];

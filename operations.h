@@ -9,6 +9,31 @@
 
 #include "structs.h"
 
+//将路径打碎成各级文件夹的名字，存放在seperated_names中。返回值是seperated_names中内容的项数。
+//例如：parsePath("/home/foldera/folderb/file") = 4
+int parsePath(string path)
+{
+    int last_slash = 0;
+    int i, j = 0;
+    int s = path.size();
+    for (i = 1; i < s; i++)
+    {
+        if (path[i] == '/')
+        {
+            seperated_names[j] = path.substr(last_slash + 1, i - last_slash - 1);
+            last_slash = i;
+            j++;
+        }
+    }
+    return j;
+}
+
+//检查文件/文件夹是否存在
+bool doesExist(string path)
+{
+
+}
+
 //将内存中的内容写入文件
 void writeMemoryToFile()
 {
@@ -27,7 +52,7 @@ void writeMemoryToFile()
     fout.close();
 }
 
-//初始化（“格式化”）硬盘
+//初始化（“格式化”）硬盘，并写入文件
 void initialize()
 {
     super_block.inode_bitmap[0] = true;
@@ -39,13 +64,14 @@ void initialize()
         inodes[0].i_file_size = 0;
         inodes[0].i_blocks[0] = 0;
     }
+    location = "";
     writeMemoryToFile();
 }
 
 //pwd
-void getLocation()
+string getLocation()
 {
-
+    return location;
 }
 
 //cd $path
