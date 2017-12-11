@@ -9,9 +9,20 @@
 
 #include "structs.h"
 
+File_Block * getAddressByLocation_File(int location)
+{
+    File_Block * p = NULL;
+    
+}
+
+dir_block * getAddressByLocation_Folder(int location)
+{
+
+}
+
 //将路径打碎成各级文件夹的名字，存放在seperated_names中。返回值是seperated_names中内容的项数。
 //例如：parsePath("/home/foldera/folderb/file") = 4
-int parsePath(string path)
+void parsePath(string path)
 {
     int last_slash = 0;
     int i, j = 0;
@@ -25,13 +36,17 @@ int parsePath(string path)
             j++;
         }
     }
-    return j;
+    num_of_layers = j;
 }
 
 //检查文件/文件夹是否存在
-bool doesExist(string path)
+bool doesExist()
 {
+    int i;
+    for (i = 0; i < num_of_layers; i++)
+    {
 
+    }
 }
 
 //将内存中的内容写入文件
@@ -40,14 +55,15 @@ void writeMemoryToFile()
     ofstream fout(FILEPATH, ios::binary);
     fout.write((char *)super_block.inode_bitmap, sizeof(super_block.inode_bitmap));
     fout.write((char *)super_block.block_bitmap, sizeof(super_block.block_bitmap));
-    for (int i = 0; i < 4096; i++)
+    /*for (int i = 0; i < 4096; i++)
     {
         fout.write((char *)&inodes[i].i_id, 4);
         fout.write((char *)&inodes[i].i_mode, 4);
         fout.write((char *)&inodes[i].i_file_size, 4);
         fout.write((char *)inodes[i].i_blocks, sizeof(inodes[i].i_blocks));
         fout.write((char *)inodes[i].i_place_holder, 16);
-    }
+    }*/
+    fout.write((char *)inodes, sizeof(inodes));
     fout.write(emptyspaces, sizeof(emptyspaces));
     fout.close();
 }
@@ -57,12 +73,12 @@ void initialize()
 {
     super_block.inode_bitmap[0] = true;
     super_block.block_bitmap[0] = true;
+    inodes[0].i_mode = A_FOLDER;
     for (int i = 0; i < 4096; i++)
     {
-        inodes[0].i_id = i;
-        inodes[0].i_mode = 0;
-        inodes[0].i_file_size = 0;
-        inodes[0].i_blocks[0] = 0;
+        inodes[i].i_id = i;
+        inodes[i].i_file_size = 0;
+        inodes[i].i_blocks[0] = 0;
     }
     location = "";
     writeMemoryToFile();
@@ -77,7 +93,7 @@ string getLocation()
 //cd $path
 int setLocation(string path)
 {
-
+    location = path;
 }
 
 //mkdir $path

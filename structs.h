@@ -13,6 +13,8 @@
 using namespace std;
 
 const string FILEPATH = "hello";
+const int A_FOLDER = 1;
+const int A_FILE = 2;
 
 struct Super_Block
 {
@@ -48,3 +50,4 @@ struct dir_block
 char emptyspaces[4096 * 4096];
 string location;
 string seperated_names[100];
+int num_of_layers = 0;
