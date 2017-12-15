@@ -11,13 +11,14 @@
 
 File_Block * getAddressByLocation_File(int location)
 {
-    File_Block * p = NULL;
-    
+    File_Block * p = (File_Block *)emptyspaces;
+    return p + location;
 }
 
 dir_block * getAddressByLocation_Folder(int location)
 {
-
+    dir_block * p = (dir_block *)emptyspaces;
+    return p + location;
 }
 
 //将路径打碎成各级文件夹的名字，存放在seperated_names中。返回值是seperated_names中内容的项数。
@@ -43,9 +44,35 @@ void parsePath(string path)
 bool doesExist()
 {
     int i;
+    int current = 0;//当前所在索引结点
     for (i = 0; i < num_of_layers; i++)
     {
+        int mode = inodes[current].i_mode;
+        if (mode == A_FOLDER)//文件夹
+        {
+            int blocks = inodes[current].i_blocks[0];
+            dir_block * p = getAddressByLocation_Folder(blocks);
+            for (int j = 0; j < 15; j++)
+            {
+                char t[252];
+                strcpy(t, seperated_names[i].c_str());//将打碎的路径的第i项转化为c风格字符串
+                if (strcmp(t, p->dirs->name) == 0)
+                {
+                    break;
+                }
+            }
+        }
+        else//文件
+        {
+            if (i != num_of_layers - 1)
+            {
 
+            }
+            else
+            {
+
+            }
+        }
     }
 }
 
