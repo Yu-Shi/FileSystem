@@ -48,6 +48,7 @@ struct dir_block
 };
 
 char emptyspaces[4096 * 4096];
-string location;
-string seperated_names[100];
-int num_of_layers = 0;
+
+//当前所在目录的信息
+string location;//current directory
+int current_node = 0;//当前索引节点编号
