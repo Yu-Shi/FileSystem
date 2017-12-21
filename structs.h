@@ -13,8 +13,12 @@
 using namespace std;
 
 const string FILEPATH = "hello";
+
 const int A_FOLDER = 1;
 const int A_FILE = 2;
+
+const int ABSOLUTE_PATH = 1;
+const int RELATIVE_PATH = 2;
 
 struct Super_Block
 {
@@ -50,5 +54,5 @@ struct dir_block
 char emptyspaces[4096 * 4096];
 
 //当前所在目录的信息
-string location;//current directory
+string location = "/";//current directory
 int current_node = 0;//当前索引节点编号

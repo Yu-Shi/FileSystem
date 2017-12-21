@@ -2,12 +2,26 @@
 // Created by Shi on 2017/12/8.
 //
 
+//写到吐血
+
 #ifndef FILESYSTEM_OPERATIONS_H
 #define FILESYSTEM_OPERATIONS_H
 
 #endif //FILESYSTEM_OPERATIONS_H
 
 #include "structs.h"
+
+int getPathType(string path)
+{
+    if (path[0] == '/' && path.size() != 0)
+        return ABSOLUTE_PATH;
+    return RELATIVE_PATH;
+}
+
+string convertToAbsolutePath(string path)
+{
+    return location + path;
+}
 
 File_Block * getAddressByLocation_File(int location)
 {
@@ -30,6 +44,8 @@ int parsePath(string path, string * names)
     int s = path.size();
     if (path[s - 1] != '/')
         path = path + "/";
+    if (path[0] != '/')
+        path = "/" + path;
     s = path.size();
     cout << path << endl;
     for (i = 1; i < s; i++)
@@ -127,7 +143,7 @@ string getLocation()
     return location;
 }
 
-//查找结点编号。在检查过文件夹存在时调用。
+//查找特定文件的结点编号（inode_id）。在检查文件夹存在时调用。
 int getId(string * names, int layers)
 {
     int current = 0;
@@ -153,10 +169,20 @@ int getId(string * names, int layers)
 int setLocation(string path)
 {
     string names[100];
+    if (getPathType(path) == RELATIVE_PATH)
+    {
+        path = convertToAbsolutePath(path);
+        cout << "hello\n" << endl;
+    }
     int layers = parsePath(path, names);
     if (doesExist(names, layers) == layers)
     {
-        location = path;
+        location = (path[path.size() - 1] == '/' ? path : path + '/');
+        cout << "location is " << location << endl;
+        //if (path[path.size() - 1] == '/')
+        //{
+        //    location = path.substr(0, path.size() - 1);//去除末位‘/’
+        //}
         int current = 0;
         for (int i = 0; i < layers; i++)
         {
@@ -178,7 +204,6 @@ int setLocation(string path)
     }
     //path不存在
     return -1;
-
 }
 
 //（不公开调用！）根据索引节点序号创建名为name的子文件夹。返回子文件夹的id。
@@ -207,7 +232,8 @@ int makeDirectoryById(int id, string name)
             break;
         }
     }
-    for (int k = 0; k < 4096; k++)
+    int k;
+    for (k = 0; k < 4096; k++)
     {
         if (!super_block.block_bitmap[k])
         {
@@ -216,6 +242,8 @@ int makeDirectoryById(int id, string name)
             break;
         }
     }
+    int blocks = k;
+    
     return j;
 }
 
@@ -245,7 +273,22 @@ int newItem(string path)
 //ls $path
 int getChildItem(string path)
 {
-
+    string cur_path = location;
+    int cur_inode = current_node;
+    setLocation(path);
+    //string names[100];
+    //int layers = parsePath(path, names);
+    int blocks = inodes[current_node].i_blocks[0];
+    dir_block * p = getAddressByLocation_Folder(blocks);
+    for (int i = 0; i < 16; i++)
+    {
+        if (strcmp(p->dirs[i].name, "") != 0)//非空
+        {
+            cout << p->dirs[i].name << endl;
+        }
+    }
+    location = cur_path;//恢复原状态
+    current_node = cur_inode;
 }
 
 //rmdir $path
