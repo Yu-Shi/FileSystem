@@ -13,25 +13,27 @@
 
 int getPathType(string path)
 {
-    if (path[0] == '/' && path.size() != 0)
+    if (path[0] == '/' && !path.empty())
         return ABSOLUTE_PATH;
     return RELATIVE_PATH;
 }
 
 string convertToAbsolutePath(string path)
 {
+    if (path[path.size() - 1] != '/')
+        path += '/';
     return location + path;
 }
 
 File_Block * getAddressByLocation_File(int location)
 {
-    File_Block * p = (File_Block *)emptyspaces;
+    auto * p = (File_Block *)emptyspaces;
     return p + location;
 }
 
 dir_block * getAddressByLocation_Folder(int location)
 {
-    dir_block * p = (dir_block *)emptyspaces;
+    auto * p = (dir_block *)emptyspaces;
     return p + location;
 }
 
@@ -39,20 +41,27 @@ dir_block * getAddressByLocation_Folder(int location)
 //例如：parsePath("/home/foldera/folderb/file") = 4
 int parsePath(string path, string * names)
 {
+    if (path.empty())
+    {
+        names[0] = "";
+        return 0;
+    }
     int last_slash = 0;
     int i, j = 0;
-    int s = path.size();
+    int s;
+    s = static_cast<int>(path.size());
     if (path[s - 1] != '/')
         path = path + "/";
     if (path[0] != '/')
         path = "/" + path;
-    s = path.size();
+    s = static_cast<int>(path.size());
     cout << path << endl;
     for (i = 1; i < s; i++)
     {
         if (path[i] == '/')
         {
-            names[j] = path.substr(last_slash + 1, i - last_slash - 1);
+            names[j] = path.substr(static_cast<unsigned long>(last_slash + 1),
+                                   static_cast<unsigned long>(i - last_slash - 1));
             cout << names[j] << endl;
             last_slash = i;
             j++;
@@ -66,7 +75,7 @@ int parsePath(string path, string * names)
 int doesExist(string * names, int num_of_layers)
 {
     int i;
-    int current = 0;//当前所在索引结点
+    int current = current_node;//当前所在索引结点
     for (i = 0; i < num_of_layers; i++)
     {
         int mode = inodes[current].i_mode;
@@ -75,14 +84,14 @@ int doesExist(string * names, int num_of_layers)
             int blocks = inodes[current].i_blocks[0];
             dir_block * p = getAddressByLocation_Folder(blocks);
             bool flag = false;
-            for (int j = 0; j < 16; j++)
+            for (auto &dir : p->dirs) 
             {
                 char t[252];
                 strcpy(t, names[i].c_str());//将打碎的路径的第i项转化为c风格字符串
-                if (strcmp(t, p->dirs[j].name) == 0)//存在
+                if (strcmp(t, dir.name) == 0)//存在
                 {
                     flag = true;
-                    current = p->dirs[j].inode_id;
+                    current = dir.inode_id;
                     break;
                 }
             }
@@ -129,7 +138,7 @@ void initialize()
         inodes[i].i_file_size = 0;
         inodes[i].i_blocks[0] = 0;
     }
-    dir_block * p = (dir_block *)emptyspaces;
+    auto * p = (dir_block *)emptyspaces;
     p->dirs[0].inode_id = 0;//inode_id指示当前目录
     super_block.inode_bitmap[0] = true;
     strcpy(p->dirs[0].name, ".");//指当前目录
@@ -146,18 +155,18 @@ string getLocation()
 //查找特定文件的结点编号（inode_id）。在检查文件夹存在时调用。
 int getId(string * names, int layers)
 {
-    int current = 0;
+    int current = current_node;
     for (int i = 0; i < layers; i++)
     {
         int blocks = inodes[current].i_blocks[0];
         dir_block * p = getAddressByLocation_Folder(blocks);
-        for (int j = 0; j < 16; j++)
+        for (auto &dir : p->dirs) 
         {
             char t[252];
             strcpy(t, names[i].c_str());//将打碎的路径的第i项转化为c风格字符串
-            if (strcmp(t, p->dirs[j].name) == 0)//存在
+            if (strcmp(t, dir.name) == 0)//存在
             {
-                current = p->dirs[j].inode_id;
+                current = dir.inode_id;
                 break;
             }
         }
@@ -166,44 +175,24 @@ int getId(string * names, int layers)
 }
 
 //cd $path
-int setLocation(string path)
+void setLocation(string path)
 {
     string names[100];
-    if (getPathType(path) == RELATIVE_PATH)
-    {
-        path = convertToAbsolutePath(path);
-        cout << "hello\n" << endl;
-    }
     int layers = parsePath(path, names);
-    if (doesExist(names, layers) == layers)
+    if (doesExist(names, layers) == layers)//存在
     {
-        location = (path[path.size() - 1] == '/' ? path : path + '/');
-        cout << "location is " << location << endl;
-        //if (path[path.size() - 1] == '/')
-        //{
-        //    location = path.substr(0, path.size() - 1);//去除末位‘/’
-        //}
-        int current = 0;
-        for (int i = 0; i < layers; i++)
+        int id = getId(names, layers);
+        current_node = id;
+        if (getPathType(path) == RELATIVE_PATH)
         {
-            int blocks = inodes[current].i_blocks[0];
-            dir_block * p = getAddressByLocation_Folder(blocks);
-            for (int j = 0; j < 16; j++)
-            {
-                char t[252];
-                strcpy(t, names[i].c_str());//将打碎的路径的第i项转化为c风格字符串
-                if (strcmp(t, p->dirs[j].name) == 0)//存在
-                {
-                    current = p->dirs[j].inode_id;
-                    break;
-                }
-            }
+            path = convertToAbsolutePath(path);
         }
-        current_node = current;
-        return 0;
+        location = path;
     }
-    //path不存在
-    return -1;
+    else
+    {
+        cout << path << ": No such file or directory.\n";
+    }
 }
 
 //（不公开调用！）根据索引节点序号创建名为name的子文件夹。返回子文件夹的id。
@@ -224,10 +213,10 @@ int makeDirectoryById(int id, string name)
     int j;
     for (j = 0; j < 4096; j++)
     {
-        if (!super_block.inode_bitmap[j])
+        if (!super_block.inode_bitmap[j])//inode_bitmap中j号为空
         {
             p->dirs[i].inode_id = j;
-            inodes[j].i_mode = A_FOLDER;
+            inodes[j].i_mode = A_FOLDER;//inode的j号标记为folder
             super_block.inode_bitmap[j] = true;
             break;
         }
@@ -242,21 +231,28 @@ int makeDirectoryById(int id, string name)
             break;
         }
     }
-    int blocks = k;
-    
+    dir_block * new_folder = getAddressByLocation_Folder(k);
+    strcpy(new_folder->dirs[0].name, ".");
+    strcpy(new_folder->dirs[1].name, "..");
+    new_folder->dirs[0].inode_id = j;
+    new_folder->dirs[1].inode_id = id;
     return j;
 }
 
 //mkdir $path
-int newItem(string path)
+void newItem(string path)
 {
     string names[100];
     int layers = parsePath(path, names);
-    cout << names[0] << endl;
-    int exist_layers = doesExist(names, layers);
+    //cout << names[0] << endl;
+    int exist_layers;
+    exist_layers = doesExist(names, layers);
     cout << "exist_layers = " << exist_layers << endl;
     if (exist_layers == layers)//执行mkdir却发现已经存在
-        return -1;//mkdir失败
+    {
+        cout << path << " already exists.\n";
+        return;
+    }
     int id = getId(names, exist_layers);
     cout << names[0] << endl;
     cout << "id = " << id << endl;
@@ -267,18 +263,23 @@ int newItem(string path)
         cout << "id = " << id << endl;
     }
     writeMemoryToFile();
-    return 0;
 }
 
 //ls $path
-int getChildItem(string path)
+void getChildItem(string path)
 {
     string cur_path = location;
     int cur_inode = current_node;
-    setLocation(path);
-    //string names[100];
-    //int layers = parsePath(path, names);
-    int blocks = inodes[current_node].i_blocks[0];
+    string names[100];
+    int layers = parsePath(path, names);
+    if (doesExist(names, layers) != layers)
+    {
+        cout << path << ": No such file or directory.\n";
+        return;
+    }
+    cur_inode = getId(names, layers);
+    cout << "cur_inode: " << cur_inode << endl;
+    int blocks = inodes[cur_inode].i_blocks[0];
     dir_block * p = getAddressByLocation_Folder(blocks);
     for (int i = 0; i < 16; i++)
     {
@@ -287,8 +288,6 @@ int getChildItem(string path)
             cout << p->dirs[i].name << endl;
         }
     }
-    location = cur_path;//恢复原状态
-    current_node = cur_inode;
 }
 
 //rmdir $path
@@ -313,4 +312,48 @@ int getContent(string path)
 int removeFile(string path)
 {
 
+}
+
+void printLines(int n)
+{
+    /*if (n == 0)
+        return;
+    cout << "└";*/
+    int i;
+    for (i = 0; i < n; i++)
+        cout << "\t";
+}
+
+int printTreeView(int id, int tabs)
+{
+    dir_block * p = getAddressByLocation_Folder(inodes[id].i_blocks[0]);
+    int i;
+    for (i = 0; i < 16; i++)
+    {
+        if (strcmp(p->dirs[i].name, ""))
+        {
+            printLines(tabs);
+            cout << p->dirs[i].name << endl;
+            int nextid = p->dirs[i].inode_id;
+            if (inodes[nextid].i_mode == A_FOLDER && strcmp(p->dirs[i].name, ".") && strcmp(p->dirs[i].name, ".."))
+            {
+                printTreeView(nextid, tabs + 1);
+            }
+        }
+    }
+}
+
+void treeView(string path)
+{
+    string names[100];
+    int layers = parsePath(path, names);
+    if (doesExist(names, layers) == layers)//存在
+    {
+        int id = getId(names, layers);
+        printTreeView(id, 0);
+    }
+    else
+    {
+        cout << path << ": No such file or directory.\n";
+    }
 }
