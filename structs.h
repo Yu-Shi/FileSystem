@@ -10,6 +10,8 @@
 #include <string>
 #include <cstring>
 #include <fstream>
+#include <stack>
+#include "windows.h"
 using namespace std;
 
 const string FILEPATH = "hello";
@@ -56,3 +58,8 @@ char emptyspaces[4096 * 4096];
 //当前所在目录的信息
 string location = "/";//current directory
 int current_node = 0;//当前索引节点编号
+bool flag = true;//是否退出
+
+const int COLOR_FOLDER = 1;
+const int COLOR_ORIGIN = 2;
+const int COLOR_ERR = 3;
