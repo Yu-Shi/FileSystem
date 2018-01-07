@@ -11,10 +11,12 @@
 #include <cstring>
 #include <fstream>
 #include <stack>
+#ifdef WIN32//if windows
 #include "windows.h"
+#endif
 using namespace std;
 
-const string FILEPATH = "hello";
+const string FILEPATH = "ext";
 
 const int A_FOLDER = 1;
 const int A_FILE = 2;
@@ -56,7 +58,6 @@ struct dir_block
 char emptyspaces[4096 * 4096];
 
 //当前所在目录的信息
-string location = "/";//current directory
 int current_node = 0;//当前索引节点编号
 bool flag = true;//是否退出
 

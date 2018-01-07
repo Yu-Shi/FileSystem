@@ -1,7 +1,3 @@
-//
-// Created by Shi on 2017/12/8.
-//
-
 #ifndef FILESYSTEM_OPERATIONS_H
 #define FILESYSTEM_OPERATIONS_H
 
@@ -9,10 +5,7 @@
 
 #include "structs.h"
 
-//将一行命令打碎，存放在commands中。
-//例如：parseCmd("ls home") = 2
-
-
+//于是
 void setColor(int color)
 {
 
@@ -37,6 +30,9 @@ void setColor(int color)
 
 }
 
+//袁加熠
+//将一行命令打碎，存放在commands中。
+//例如：parseCmd("ls home") = 2
 int parseCmd(string cmd, string *commands) {
     int a = 0, j = 0;
     for (int i = 0; i < cmd.size() + 1; i++) {
@@ -53,29 +49,26 @@ int parseCmd(string cmd, string *commands) {
     return j + 1;
 }
 
-
+//于是
 int getPathType(string path) {
     if (path[0] == '/' && !path.empty())
         return ABSOLUTE_PATH;
     return RELATIVE_PATH;
 }
 
-string convertToAbsolutePath(string path) {
-    if (path[path.size() - 1] != '/')
-        path += '/';
-    return location + path;
-}
-
+//于是
 File_Block *getAddressByLocation_File(int location) {
     auto *p = (File_Block *) emptyspaces;
     return p + location;
 }
 
+//于是
 dir_block *getAddressByLocation_Folder(int location) {
     auto *p = (dir_block *) emptyspaces;
     return p + location;
 }
 
+//于是
 //将路径打碎成各级文件夹的名字，存放在names中。
 //例如：parsePath("/home/foldera/folderb/file") = 4
 int parsePath(string path, string *names) {
@@ -104,6 +97,7 @@ int parsePath(string path, string *names) {
     return j;
 }
 
+//于是
 //检查文件/文件夹是否存在，返回存在的最深层
 int doesExist(string *names, int num_of_layers, bool isRelative) {
     int i;
@@ -136,24 +130,18 @@ int doesExist(string *names, int num_of_layers, bool isRelative) {
     return num_of_layers;
 }
 
+//于是
 //将内存中的内容写入文件
 void writeMemoryToFile() {
     ofstream fout(FILEPATH, ios::binary);
     fout.write((char *) super_block.inode_bitmap, sizeof(super_block.inode_bitmap));
     fout.write((char *) super_block.block_bitmap, sizeof(super_block.block_bitmap));
-    /*for (int i = 0; i < 4096; i++)
-     {
-     fout.write((char *)&inodes[i].i_id, 4);
-     fout.write((char *)&inodes[i].i_mode, 4);
-     fout.write((char *)&inodes[i].i_file_size, 4);
-     fout.write((char *)inodes[i].i_blocks, sizeof(inodes[i].i_blocks));
-     fout.write((char *)inodes[i].i_place_holder, 16);
-     }*/
     fout.write((char *) inodes, sizeof(inodes));
     fout.write(emptyspaces, sizeof(emptyspaces));
     fout.close();
 }
 
+//于是
 //初始化（“格式化”）硬盘，并写入文件
 void initialize() {
     super_block.inode_bitmap[0] = true;
@@ -168,7 +156,6 @@ void initialize() {
     p->dirs[0].inode_id = 0;//inode_id指示当前目录
     super_block.inode_bitmap[0] = true;
     strcpy(p->dirs[0].name, ".");//指当前目录
-    location = "";
 }
 
 int getParentById(int id) {
@@ -177,6 +164,7 @@ int getParentById(int id) {
     return p->dirs[1].inode_id;
 }
 
+//于是
 //pwd
 void getLocation() {
     int cur = current_node;
@@ -200,6 +188,7 @@ void getLocation() {
     cout << endl;
 }
 
+//于是
 //查找特定文件的结点编号（inode_id）。在检查文件夹存在时调用。
 int getId(string *names, int layers, bool isRelative) {
     int current = isRelative ? current_node : 0;
@@ -222,6 +211,7 @@ int getId(string *names, int layers, bool isRelative) {
     return current;
 }
 
+//于是
 //cd $path
 void setLocation(string path) {
     string names[100];
@@ -237,10 +227,6 @@ void setLocation(string path) {
             return;
         }
         current_node = id;
-        if (getPathType(path) == RELATIVE_PATH) {
-            path = convertToAbsolutePath(path);
-        }
-        location = path;
     }
     else {
         setColor(COLOR_ERR);
@@ -249,6 +235,7 @@ void setLocation(string path) {
     }
 }
 
+//于是
 //（不公开调用！）根据索引节点序号创建名为name的子文件夹。返回子文件夹的id。
 int makeDirectoryById(int id, string name) {
     dir_block *p = getAddressByLocation_Folder(inodes[id].i_blocks[0]);
@@ -288,14 +275,13 @@ int makeDirectoryById(int id, string name) {
     return j;
 }
 
+//于是
 //mkdir $path
 void newItem(string path) {
     string names[100];
     int layers = parsePath(path, names);
-    //cout << names[0] << endl;
     int exist_layers;
     exist_layers = doesExist(names, layers, getPathType(path) == RELATIVE_PATH);
-    //cout << "exist_layers = " << exist_layers << endl;
     if (exist_layers == layers)//执行mkdir却发现已经存在
     {
         setColor(COLOR_ERR);
@@ -304,18 +290,14 @@ void newItem(string path) {
         return;
     }
     int id = getId(names, exist_layers, getPathType(path) == RELATIVE_PATH);
-    //cout << names[0] << endl;
-    //cout << "id = " << id << endl;
     for (int i = exist_layers; i < layers; i++) {
-        //cout << "names[" << i << "] = " << names[i] << endl;
         id = makeDirectoryById(id, names[i]);
-        //cout << "id = " << id << endl;
     }
 }
 
+//于是
 //ls $path
 void getChildItem(string path) {
-    string cur_path = location;
     int cur_inode;
     string names[100];
     int layers = parsePath(path, names);
@@ -324,7 +306,6 @@ void getChildItem(string path) {
         return;
     }
     cur_inode = getId(names, layers, getPathType(path) == RELATIVE_PATH);
-    //cout << "cur_inode: " << cur_inode << endl;
     int blocks = inodes[cur_inode].i_blocks[0];
     dir_block *p = getAddressByLocation_Folder(blocks);
     for (int i = 0; i < 16; i++) {
@@ -340,17 +321,23 @@ void getChildItem(string path) {
     }
 }
 
+//袁加熠
 //根据索引节点序号创建文件，返回该文件id
 int makeFileById(int id, string name, string str) {
     dir_block *p = getAddressByLocation_Folder(inodes[id].i_blocks[0]);
     int i;
+    bool isfull = true;
     for (i = 0; i < 16; i++) {
         if (strcmp(p->dirs[i].name, "") == 0) {//找到空的目录项
+            isfull = false;
             char t[252];
             strcpy(t, name.c_str());
             strcpy(p->dirs[i].name, t);//名字
             break;
         }
+    }
+    if(isfull){
+        return 0;
     }
     int j;
     for (j = 0; j < 4096; j++) {
@@ -375,17 +362,16 @@ int makeFileById(int id, string name, string str) {
     }
     inodes[j].i_file_size = str.size();//文件大小
     int cur = id;
-    //cout << "j=" << j << endl;
     while (cur)
     {
         inodes[cur].i_file_size += str.size();
         cur = getParentById(cur);
-        //cout << "cur: " << cur << endl;
     }
     inodes[0].i_file_size += str.size();
     return j;
 }
 
+//袁加熠
 //rmdir的递归函数
 void delDirOrFile(int id, int parentid) {
     if (inodes[id].i_mode == A_FILE) {
@@ -417,6 +403,7 @@ void delDirOrFile(int id, int parentid) {
     }
 }
 
+//袁加熠
 ///rmdir $path
 void removeDirectory(string path) {
     string names[100];
@@ -442,6 +429,7 @@ void removeDirectory(string path) {
     }
 }
 
+//袁加熠
 //echo $str $path
 void writeOutput(string str, string path) {
     string names[100];
@@ -481,7 +469,10 @@ void writeOutput(string str, string path) {
     else if (legal_layers + 1 == layers) {
         int id = getId(names, layers - 1, getPathType(path) == RELATIVE_PATH);//找到要创建文件所在目录的inode中的i.id
         string realstr = str.substr(1, str.size() - 2);
-        makeFileById(id, names[layers - 1], realstr);
+        if(makeFileById(id, names[layers - 1], realstr) == 0){
+            cout << "current folder is full!" << endl;
+            return;
+        }
     }
     else {
         setColor(COLOR_ERR);
@@ -490,6 +481,7 @@ void writeOutput(string str, string path) {
     }
 }
 
+//袁加熠
 //cat $path
 void getContent(string path) {
     string names[100];
@@ -517,6 +509,7 @@ void getContent(string path) {
     }
 }
 
+//袁加熠
 //rm $path
 void removeFile(string path) {
     string names[100];
@@ -553,6 +546,7 @@ void removeFile(string path) {
     }
 }
 
+//于是
 void printLines(int n) {
     /*if (n == 0)
      return;
@@ -562,6 +556,7 @@ void printLines(int n) {
         cout << "\t";
 }
 
+//于是
 void printTreeView(int id, int tabs) {
     dir_block *p = getAddressByLocation_Folder(inodes[id].i_blocks[0]);
     int i;
@@ -577,6 +572,7 @@ void printTreeView(int id, int tabs) {
     }
 }
 
+//于是
 void treeView(string path) {
     string names[100];
     int layers = parsePath(path, names);
@@ -592,6 +588,7 @@ void treeView(string path) {
     }
 }
 
+//袁加熠
 //cpy $path1 $path2
 void copyFile(string filepath, string dirpath) {
     string names1[100];
@@ -621,7 +618,7 @@ void copyFile(string filepath, string dirpath) {
                     cout << "Invalid path." << endl;
                     setColor(COLOR_ORIGIN);
                 }
-                else {//彻底合法了。。。
+                else {//完全合法
                     string filename, filecontent;
                     File_Block *p = getAddressByLocation_File(inodes[id1].i_blocks[0]);
                     dir_block *q = getAddressByLocation_Folder(inodes[id3].i_blocks[0]);
@@ -632,7 +629,10 @@ void copyFile(string filepath, string dirpath) {
                             break;
                         }
                     }
-                    makeFileById(id2, filename, filecontent);
+                    if(makeFileById(id2, filename, filecontent) == 0){
+                        cout << "current folder is full!" << endl;
+                        return;
+                    }
                 }
             }
             else {
